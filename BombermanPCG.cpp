@@ -53,6 +53,53 @@ public:
                 }
             }
         }
+        // Calcular cuántos muros destructibles, power ups y enemigos colocar
+        int md_total = free_positions.size() * p_md;
+        int power_total = md_total * p_power;
+        int enemy_total = (free_positions.size() - md_total) * p_enemy;
+
+        shuffle(free_positions.begin(), free_positions.end(), random_engine);
+
+        // Colocar muros destructibles y power ups
+        for (auto& [i, j] : free_positions) {
+            if (md_total <= 0) break;
+
+            if (power_total > 0) {
+                map.grid[i][j] = getRandomPowerUp();
+                power_total--;
+            } else {
+                map.grid[i][j] = "*";
+            }
+            md_total--;
+        }
+
+        // Colocar una única salida "S" en un muro destructible "*"
+        shuffle(free_positions.begin(), free_positions.end(), random_engine);
+        for (auto& [i, j] : free_positions) {
+            if (map.grid[i][j] == "*") {
+                map.grid[i][j] = "S";
+                break;
+            }
+        }
+
+        // Colocar enemigos en celdas vacías
+        shuffle(free_positions.begin(), free_positions.end(), random_engine);
+        for (auto& [i, j] : free_positions) {
+            if (enemy_total <= 0) break;
+            if (map.grid[i][j] == "-") {
+                map.grid[i][j] = getRandomEnemy();
+                enemy_total--;
+            }
+        }
+
+        // Asegurar que las 4 esquinas interiores estén vacías
+        vector<pair<int, int>> corners = {
+            {1, 1}, {1, MAP_SIZE - 2},
+            {MAP_SIZE - 2, 1}, {MAP_SIZE - 2, MAP_SIZE - 2}
+        };
+        for (auto& [i, j] : corners) {
+            map.grid[i][j] = "-";
+        }
 
         return map;
     }
