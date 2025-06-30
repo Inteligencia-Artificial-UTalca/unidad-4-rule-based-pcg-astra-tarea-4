@@ -4,10 +4,14 @@
 #include <random>
 #include <algorithm>
 #include <iomanip>
+#include <chrono>
+
 
 using namespace std;
+using namespace chrono;
 
 const int MAP_SIZE = 15;
+const int TOTAL_CELLS = MAP_SIZE * MAP_SIZE;
 const vector<string> POWER_UPS = { "#", "$", "@", "&" };
 const vector<string> ENEMIES = { "B", "O", "D", "M" };
 
@@ -53,6 +57,7 @@ public:
                 }
             }
         }
+
         // Calcular cuántos muros destructibles, power ups y enemigos colocar
         int md_total = free_positions.size() * p_md;
         int power_total = md_total * p_power;
@@ -118,8 +123,32 @@ private:
 };
 
 int main() {
+
+    float p_md = 0.4f;  
+    float p_power = 0.1f; 
+    float p_enemy = 0.05f;
+    float p_ev = 0.00000001f;
+    int ev_count = 0;
+
+    auto start = high_resolution_clock::now();
+
     MapGenerator generator;
-    Map map = generator.generate(0.4f, 0.1f, 0.05f);
+    Map map = generator.generate(p_md, p_power, p_enemy);
     map.print();
+
+    auto end = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(end - start);
+
+    for (auto& row : map.grid) {
+        for (auto& cell : row) {
+            if (cell == "-") ev_count++;
+        }
+    }
+
+    p_ev = 100 * ev_count / TOTAL_CELLS;
+
+    cout << "\nTiempo de ejecucion: " << duration.count() << " µs" << endl;
+    cout << "Parametros usados: p_md = " << p_md * 100 << "%, p_power = " << p_power * 100 << "%, p_enemy = " << p_enemy * 100 << "%, p_ev = " << p_ev << "%" << endl;
+
     return 0;
 }
